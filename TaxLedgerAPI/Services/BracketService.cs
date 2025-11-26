@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DataEF;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TaxLedgerAPI.Models;
 using TaxLedgerAPI.Models.Responses;
 using TaxLedgerAPI.Structs;
@@ -11,12 +12,14 @@ namespace TaxLedgerAPI.Services
         private readonly ILogger<BracketService> logger;
         private readonly Context context;
         private readonly IMapper mapper;
+        private readonly ICacheService cache;
 
-        public BracketService(ILogger<BracketService> logger, Context context, IMapper mapper)
+        public BracketService(ILogger<BracketService> logger, Context context, IMapper mapper, ICacheService cache)
         {
             this.logger = logger;
             this.context = context;
             this.mapper = mapper;
+            this.cache = cache;
         }
 
         public ResponseGeneric<IEnumerable<Bracket>> GetBrackets()
@@ -25,7 +28,7 @@ namespace TaxLedgerAPI.Services
             {
                 return new ResponseGeneric<IEnumerable<Bracket>>
                 {
-                    Data = mapper.ProjectTo<Bracket>(context.Brackets),
+                    Data = cache.GetFromCacheByKey<IEnumerable<Bracket>>(nameof(Bracket)) ?? cache.AddToCacheAndReturn(nameof(Bracket), mapper.ProjectTo<Bracket>(context.Brackets).ToList()),
                     Success = true,
                     Message = MessageStruct.RetrieveSuccess
                 };

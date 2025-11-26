@@ -11,6 +11,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 //Add Core Services
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen().AddSwaggerGenNewtonsoftSupport();
 builder.Services.AddOpenApi();
 
@@ -27,13 +28,9 @@ builder.Services.AddLocalServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

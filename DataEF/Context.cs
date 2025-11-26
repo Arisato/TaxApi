@@ -22,20 +22,20 @@ public partial class Context : DbContext
     {
         modelBuilder.Entity<Bracket>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Brackets__3214EC078BFD2B12");
+            entity.HasKey(e => e.Id).HasName("PK__Brackets__3214EC072D3868F9");
 
-            entity.HasIndex(e => e.Id, "UQ__Brackets__3214EC066BFF9334").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Brackets__3214EC06A41D6B88").IsUnique();
 
-            entity.HasIndex(e => e.Category, "UQ__Brackets__9EA680CB61D9A141").IsUnique();
+            entity.HasIndex(e => e.Category, "UQ__Brackets__4BB73C3294543B29").IsUnique();
 
             entity.Property(e => e.Category).HasColumnType("decimal(3, 1)");
         });
 
         modelBuilder.Entity<Ledger>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Ledgers__3214EC07A8B0888D");
+            entity.HasKey(e => e.Id).HasName("PK__Ledgers__3214EC0767890A07");
 
-            entity.HasIndex(e => e.Id, "UQ__Ledgers__3214EC06BB2BDD85").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Ledgers__3214EC069CE6108D").IsUnique();
 
             entity.HasOne(d => d.Bracket).WithMany(p => p.Ledgers)
                 .HasForeignKey(d => d.BracketId)
@@ -50,11 +50,11 @@ public partial class Context : DbContext
 
         modelBuilder.Entity<Municipality>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Municipa__3214EC0704B69FA3");
+            entity.HasKey(e => e.Id).HasName("PK__Municipa__3214EC079BF33FDA");
 
-            entity.HasIndex(e => e.Id, "UQ__Municipa__3214EC06F6E9C847").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Municipa__3214EC060EDFBC96").IsUnique();
 
-            entity.HasIndex(e => e.Name, "UQ__Municipa__8D313B0357D3CE64").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Municipa__737584F66F6049D6").IsUnique();
 
             entity.Property(e => e.Name)
                 .HasMaxLength(50)

@@ -11,12 +11,14 @@ namespace TaxLedgerAPI.Services
         private readonly ILogger<MunicipalityService> logger;
         private readonly Context context;
         private readonly IMapper mapper;
+        private readonly ICacheService cache;
 
-        public MunicipalityService(ILogger<MunicipalityService> logger, Context context, IMapper mapper) 
+        public MunicipalityService(ILogger<MunicipalityService> logger, Context context, IMapper mapper, ICacheService cache) 
         {
             this.logger = logger;
             this.context = context;
             this.mapper = mapper;
+            this.cache = cache;
         }
 
         public ResponseGeneric<IEnumerable<Municipality>> GetMunicipalities()
@@ -25,7 +27,7 @@ namespace TaxLedgerAPI.Services
             {
                 return new ResponseGeneric<IEnumerable<Municipality>>
                 {
-                    Data = mapper.ProjectTo<Municipality>(context.Municipalities),
+                    Data = cache.GetFromCacheByKey<IEnumerable<Municipality>>(nameof(Municipality)) ?? cache.AddToCacheAndReturn(nameof(Municipality), mapper.ProjectTo<Municipality>(context.Municipalities).ToList()),
                     Success = true,
                     Message = MessageStruct.RetrieveSuccess
                 };
