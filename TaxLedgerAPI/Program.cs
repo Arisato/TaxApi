@@ -1,5 +1,4 @@
 using DataEF;
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using TaxLedgerAPI.Services;
 
@@ -15,10 +14,6 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen().AddSwaggerGenNewtonsoftSupport();
 builder.Services.AddOpenApi();
 
-//Add Authentication
-builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
-builder.Services.AddAuthorization(options => { options.FallbackPolicy = options.DefaultPolicy; });
-
 //Add DB Context
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<Context>(options => options.UseSqlServer(connection));
@@ -33,8 +28,6 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

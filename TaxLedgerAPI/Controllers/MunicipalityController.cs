@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TaxLedgerAPI.Helpers;
 using TaxLedgerAPI.Models;
 using TaxLedgerAPI.Models.Responses;
@@ -7,7 +6,6 @@ using TaxLedgerAPI.Services;
 
 namespace TaxLedgerAPI.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     [Produces("application/json")]
