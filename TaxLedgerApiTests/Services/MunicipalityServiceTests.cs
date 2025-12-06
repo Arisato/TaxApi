@@ -1,13 +1,13 @@
-﻿using Moq;
+﻿using AutoMapper;
 using DataEF;
-using Microsoft.EntityFrameworkCore;
 using DataEF.Models;
-using TaxLedgerAPI.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using AutoMapper;
+using Moq;
+using System.Collections.Generic;
 using TaxLedgerAPI.Profiles;
+using TaxLedgerAPI.Services;
 using TaxLedgerAPI.Structs;
-using System.Net;
 
 namespace TaxLedgerApiTests.Services
 {
@@ -15,11 +15,12 @@ namespace TaxLedgerApiTests.Services
     {
         private readonly List<Municipality> data;
         private readonly Mock<DbSet<Municipality>> mockSet;
-        private readonly Mock<ContextParameterlessConstructor> mockContext;
+        private readonly Mock<Context> mockContext;
+        private readonly Mock<ICacheService> cache;
         private readonly IMapper mapper;
         private readonly IMunicipalityService service;
 
-        public MunicipalityServiceTests() 
+        public MunicipalityServiceTests()
         {
             data = new List<Municipality>();
 
@@ -29,20 +30,26 @@ namespace TaxLedgerApiTests.Services
             mockSet.As<IQueryable<Municipality>>().Setup(m => m.ElementType).Returns(data.AsQueryable().ElementType);
             mockSet.As<IQueryable<Municipality>>().Setup(m => m.GetEnumerator()).Returns(data.AsQueryable().GetEnumerator());
 
-            mockContext = new Mock<ContextParameterlessConstructor>();
+            mockContext = new Mock<Context>();
             mockContext.Setup(c => c.Municipalities).Returns(mockSet.Object);
 
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(new MunicipalityProfile()));
             mapper = new Mapper(configuration);
+            cache = new Mock<ICacheService>();
 
-            service = service = new MunicipalityService(new Mock<ILogger<MunicipalityService>>().Object, mockContext.Object, mapper);
+            service = new MunicipalityService(new Mock<ILogger<MunicipalityService>>().Object, mockContext.Object, mapper, cache.Object);
         }
 
         [Fact]
         public void GetMunicipalities_Success()
         {
             //Arrange
+            var municipalities = new List<TaxLedgerAPI.Models.Municipality> { new TaxLedgerAPI.Models.Municipality { Id = 1, Name = "Copenhagen" }, new TaxLedgerAPI.Models.Municipality { Id = 2, Name = "London" } };
+
             data.AddRange(new Municipality { Id = 1, Name = "Copenhagen" }, new Municipality { Id = 2, Name = "London" });
+
+            cache.Setup(c => c.GetFromCacheByKey<IEnumerable<TaxLedgerAPI.Models.Municipality>>(nameof(TaxLedgerAPI.Models.Municipality))).Returns((IEnumerable<TaxLedgerAPI.Models.Municipality>)null);
+            cache.Setup(c => c.AddToCacheAndReturn(nameof(TaxLedgerAPI.Models.Municipality), It.IsAny<List<TaxLedgerAPI.Models.Municipality>>())).Returns(municipalities);
 
             //Act
             var result = service.GetMunicipalities();
@@ -61,6 +68,7 @@ namespace TaxLedgerApiTests.Services
         {
             //Arrange
             mockContext.Setup(c => c.Municipalities).Throws(new Exception());
+            cache.Setup(c => c.GetFromCacheByKey<IEnumerable<TaxLedgerAPI.Models.Municipality>>(nameof(TaxLedgerAPI.Models.Municipality))).Returns((IEnumerable<TaxLedgerAPI.Models.Municipality>)null);
 
             //Act
             var result = service.GetMunicipalities();

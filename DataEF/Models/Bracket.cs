@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace DataEF.Models;
 
-namespace DataEF.Models;
-
-public partial class Bracket
+public class Bracket
 {
     public int Id { get; set; }
 

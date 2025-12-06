@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using DataEF.Models;
+﻿using DataEF.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataEF;
 
-public partial class Context : DbContext
+public class Context : DbContext
 {
-    public Context(DbContextOptions<Context> options)
-        : base(options)
-    {
-    }
+    public Context(DbContextOptions<Context> options) : base(options) { }
+
+    public Context() : base(new DbContextOptions<Context>()) { }
 
     public virtual DbSet<Bracket> Brackets { get; set; }
 
@@ -20,6 +17,8 @@ public partial class Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Bracket>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Brackets__3214EC072D3868F9");
@@ -56,13 +55,7 @@ public partial class Context : DbContext
 
             entity.HasIndex(e => e.Name, "UQ__Municipa__737584F66F6049D6").IsUnique();
 
-            entity.Property(e => e.Name)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(50).IsUnicode(false);
         });
-
-        OnModelCreatingPartial(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

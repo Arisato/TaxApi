@@ -4,7 +4,6 @@ using DataEF.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Net;
 using TaxLedgerAPI.Profiles;
 using TaxLedgerAPI.Services;
 using TaxLedgerAPI.Structs;
@@ -15,7 +14,8 @@ namespace TaxLedgerApiTests.Services
     {
         private readonly List<Bracket> data;
         private readonly Mock<DbSet<Bracket>> mockSet;
-        private readonly Mock<ContextParameterlessConstructor> mockContext;
+        private readonly Mock<Context> mockContext;
+        private readonly Mock<ICacheService> cache;
         private readonly IMapper mapper;
         private readonly IBracketService service;
 
@@ -29,20 +29,27 @@ namespace TaxLedgerApiTests.Services
             mockSet.As<IQueryable<Bracket>>().Setup(m => m.ElementType).Returns(data.AsQueryable().ElementType);
             mockSet.As<IQueryable<Bracket>>().Setup(m => m.GetEnumerator()).Returns(data.AsQueryable().GetEnumerator());
 
-            mockContext = new Mock<ContextParameterlessConstructor>();
+            mockContext = new Mock<Context>();
             mockContext.Setup(c => c.Brackets).Returns(mockSet.Object);
 
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(new BracketProfile()));
             mapper = new Mapper(configuration);
+            cache = new Mock<ICacheService>();
 
-            service = service = new BracketService(new Mock<ILogger<BracketService>>().Object, mockContext.Object, mapper);
+            service = new BracketService(new Mock<ILogger<BracketService>>().Object, mockContext.Object, mapper, cache.Object);
         }
 
         [Fact]
         public void GetBrackets_Success()
         {
             //Arrange
-            data.AddRange(new Bracket { Id = 1, Category = 0.2M }, new Bracket { Id = 2, Category = 0.3M });
+            var bracketsData = new List<Bracket> { new Bracket { Id = 1, Category = 0.2M }, new Bracket { Id = 2, Category = 0.3M } };
+            var brackets = new List<TaxLedgerAPI.Models.Bracket> { new TaxLedgerAPI.Models.Bracket { Id = 1, Category = 0.2M }, new TaxLedgerAPI.Models.Bracket { Id = 2, Category = 0.3M } };
+
+            data.AddRange(bracketsData);
+
+            cache.Setup(c => c.GetFromCacheByKey<IEnumerable<TaxLedgerAPI.Models.Bracket>>(nameof(TaxLedgerAPI.Models.Bracket))).Returns((IEnumerable<TaxLedgerAPI.Models.Bracket>)null);
+            cache.Setup(c => c.AddToCacheAndReturn(nameof(TaxLedgerAPI.Models.Bracket), It.IsAny<List<TaxLedgerAPI.Models.Bracket>>())).Returns(brackets);
 
             //Act
             var result = service.GetBrackets();
@@ -61,6 +68,7 @@ namespace TaxLedgerApiTests.Services
         {
             //Arrange
             mockContext.Setup(c => c.Brackets).Throws(new Exception());
+            cache.Setup(c => c.GetFromCacheByKey<IEnumerable<TaxLedgerAPI.Models.Bracket>>(nameof(TaxLedgerAPI.Models.Bracket))).Returns((IEnumerable<TaxLedgerAPI.Models.Bracket>)null);
 
             //Act
             var result = service.GetBrackets();

@@ -4,7 +4,6 @@ using DataEF.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Net;
 using TaxLedgerAPI.Profiles;
 using TaxLedgerAPI.Services;
 using TaxLedgerAPI.Structs;
@@ -15,7 +14,7 @@ namespace TaxLedgerApiTests.Services
     {
         private readonly List<Ledger> data;
         private readonly Mock<DbSet<Ledger>> mockSet;
-        private readonly Mock<ContextParameterlessConstructor> mockContext;
+        private readonly Mock<Context> mockContext;
         private readonly IMapper mapper;
         private readonly ILedgerService service;
 
@@ -29,29 +28,30 @@ namespace TaxLedgerApiTests.Services
             mockSet.As<IQueryable<Ledger>>().Setup(m => m.ElementType).Returns(data.AsQueryable().ElementType);
             mockSet.As<IQueryable<Ledger>>().Setup(m => m.GetEnumerator()).Returns(data.AsQueryable().GetEnumerator());
 
-            mockContext = new Mock<ContextParameterlessConstructor>();
+            mockContext = new Mock<Context>();
             mockContext.Setup(c => c.Ledgers).Returns(mockSet.Object);
 
             var configuration = new MapperConfiguration(cfg => cfg.AddProfile(new LedgerProfile()));
             mapper = new Mapper(configuration);
 
-            service = service = new LedgerService(new Mock<ILogger<LedgerService>>().Object, mockContext.Object, mapper);
+            service = new LedgerService(new Mock<ILogger<LedgerService>>().Object, mockContext.Object, mapper);
         }
 
         [Fact]
         public void GetLedgerByNameAndDate_Success()
         {
             //Arrange
-            data.AddRange(new Ledger 
-            { 
-                Id = 1, MunicipalityId = 1, 
-                BracketId = 2, 
-                StartDate = new DateOnly(2024, 01, 01), 
+            data.AddRange(new Ledger
+            {
+                Id = 1,
+                MunicipalityId = 1,
+                BracketId = 2,
+                StartDate = new DateOnly(2024, 01, 01),
                 EndDate = new DateOnly(2024, 12, 31),
                 Municipality = new Municipality { Id = 1, Name = "Copenhagen" },
                 Bracket = new Bracket { Id = 2, Category = 0.2M }
-            }, 
-            new Ledger 
+            },
+            new Ledger
             {
                 Id = 2,
                 MunicipalityId = 1,
@@ -128,9 +128,9 @@ namespace TaxLedgerApiTests.Services
         public void AddLedger_Success()
         {
             //Arrange
-            var model = new TaxLedgerAPI.Models.Ledger 
-            { 
-                MunicipalityId = 1, 
+            var model = new TaxLedgerAPI.Models.Ledger
+            {
+                MunicipalityId = 1,
                 BracketId = 1,
                 StartDate = new DateOnly(2024, 01, 01),
                 EndDate = new DateOnly(2024, 12, 31),

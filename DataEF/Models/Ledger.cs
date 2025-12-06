@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace DataEF.Models;
 
-namespace DataEF.Models;
-
-public partial class Ledger
+public class Ledger
 {
     public int Id { get; set; }
 

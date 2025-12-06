@@ -4,24 +4,31 @@ using TaxLedgerAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Add AutoMapper
+// Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-//Add Core Services
+// Add Core Services
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen().AddSwaggerGenNewtonsoftSupport();
 builder.Services.AddOpenApi();
 
-//Add DB Context
+// Add DB Context
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<Context>(options => options.UseSqlServer(connection));
 
-//Add Local Services
+// Add Local Services
 builder.Services.AddLocalServices();
 
 var app = builder.Build();
+
+// Initialize and Migrate Database
+using (var scope = app.Services.CreateScope())
+{
+    var dataContext = scope.ServiceProvider.GetRequiredService<Context>();
+    dataContext.Database.Migrate();
+}
 
 app.MapOpenApi();
 app.UseSwagger();
